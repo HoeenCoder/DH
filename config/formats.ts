@@ -3060,6 +3060,42 @@ export const Formats: FormatList = [
 		],
 	},
 	{
+		name: "[Gen 3] Next In Line",
+		mod: 'gen3',
+		ruleset: ['[Gen 3] OU'],
+
+		validateTeam(team, options) {
+			// Pokemon inherit movepools from the next in the team.
+			// This means their species's movepools are on the previous
+			// pokemon. Adjust pools back for validation.
+			// Example team (species[movepool from])
+			// Sceptile[blaziken], Blaziken[swampert], Swampert[sceptile]
+
+			let movepool: string[] = team[team.length - 1].moves;
+			for (let i = 0; i < team.length && team.length > 1; i++) {
+				const set = team[i];
+
+				const temp = set.moves;
+				set.moves = movepool;
+				movepool = temp;
+			}
+			
+			// Check if things are valid using the existing validator
+			const problems = this.baseValidateTeam(team, options) || undefined;
+
+			// Restore movepools
+			for (let i = team.length - 1; i >= 0 && team.length > 1; i--) {
+				const set = team[i];
+
+				const temp = set.moves;
+				set.moves = movepool;
+				movepool = temp;
+			}
+
+			return problems;
+		},
+	},
+	{
 		name: "[Gen 8] PKMN YB OU",
 		desc: [
 			"PKMN YB",
